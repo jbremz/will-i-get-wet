@@ -553,6 +553,27 @@ footer {
   display: none;
 }
 
+.rate-legend {
+  display: grid;
+  gap: var(--space-1);
+  width: 200px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--paper-raised);
+  border: var(--stroke-hair) solid var(--rule);
+  color: var(--text-muted);
+}
+.rate-legend i {
+  display: block;
+  height: 10px;
+  border: var(--stroke-hair) solid var(--text);
+}
+.rate-legend .ticks {
+  display: flex;
+  justify-content: space-between;
+  font: 500 11px/14px var(--font-grotesk);
+  font-variant-numeric: tabular-nums;
+}
+
 .pin span {
   display: grid;
   place-items: center;

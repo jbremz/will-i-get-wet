@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cumulativeDistances, haversine, pointAtDistance, samplePath, slicePath } from '../src/geo';
+import { cumulativeDistances, distanceAlong, haversine, interpolate, pointAtDistance, samplePath, slicePath } from '../src/geo';
 
 const path = [
   { lat: 51.5, lon: -0.1 },
@@ -33,5 +33,18 @@ describe('geo', () => {
     const slice = slicePath(path, cum, cum[1] - 10, cum[1] + 10);
     expect(slice).toHaveLength(3);
     expect(slice[1]).toEqual(path[1]);
+  });
+
+  it('finds how far along the path a nearby point is', () => {
+    const cum = cumulativeDistances(path);
+    // Just east of the midpoint of the first (north–south) leg.
+    expect(distanceAlong(path, cum, { lat: 51.505, lon: -0.0995 })).toBeCloseTo(cum[1] / 2, -1);
+    expect(distanceAlong(path, cum, { lat: 51.52, lon: -0.07 })).toBeCloseTo(cum[2]);
+  });
+
+  it('interpolates linearly between samples and clamps at the ends', () => {
+    expect(interpolate([0, 10, 20], [0, 1, 3], 15)).toBeCloseTo(2);
+    expect(interpolate([0, 10, 20], [0, 1, 3], -5)).toBe(0);
+    expect(interpolate([0, 10, 20], [0, 1, 3], 99)).toBe(3);
   });
 });

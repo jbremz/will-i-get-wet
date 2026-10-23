@@ -103,6 +103,8 @@ export interface EnsembleResult {
   p90Mm: number;
   /** Per ride sample: chance it's raining (≥ threshold) as you pass. */
   sampleProb: number[];
+  /** Per ride sample: expected (weighted mean) rain rate as you pass, mm/h. */
+  sampleRate: number[];
   members: number;
   byModel: ModelBreakdown[];
 }
@@ -164,6 +166,7 @@ export function evaluateEnsemble(
       0.9,
     ),
     sampleProb: ride.map((_, j) => weightedShare((r) => r.rates[j] >= thresholdMmH)),
+    sampleRate: ride.map((_, j) => results.reduce((acc, r, i) => acc + r.rates[j] * weights[i], 0) / total),
     members: results.length,
     byModel: breakdown,
   };
@@ -270,10 +273,12 @@ export interface RouteForecast {
   probability: number;
   /** Per ride sample, blended the same way. */
   sampleProb: number[];
+  /** Per ride sample: expected rain rate as you pass, mm/h, blended the same way. */
+  sampleRate: number[];
   ensemble: EnsembleResult | null;
   /** From ensemble per-point chances: the bounds and the Markov estimate. */
   ensembleCrossCheck: (RouteProbabilityBounds & { markov: number }) | null;
-  highRes: { probability: number; sampleProb: number[] } | null;
+  highRes: { probability: number; sampleProb: number[]; rates: number[] } | null;
 }
 
 export function forecastRoute(
@@ -287,7 +292,11 @@ export function forecastRoute(
   const hrProbs = highResRate
     ? neighbourhoodProbabilities(highResRate, ride, departure, opts.thresholdMmH, opts.neighbourhood)
     : null;
-  const highRes = hrProbs ? { probability: markovRouteProbability(hrProbs, ride, opts.tauSec), sampleProb: hrProbs } : null;
+  const hrRates = highResRate ? evaluateScenario(highResRate, ride, departure)?.rates : undefined;
+  const highRes =
+    hrProbs && hrRates
+      ? { probability: markovRouteProbability(hrProbs, ride, opts.tauSec), sampleProb: hrProbs, rates: hrRates }
+      : null;
   if (!ensemble && !highRes) return null;
 
   const w = ensemble && highRes ? opts.highResWeight : highRes ? 1 : 0;
@@ -295,6 +304,7 @@ export function forecastRoute(
   return {
     probability: mix(ensemble?.probability ?? 0, highRes?.probability ?? 0),
     sampleProb: ride.map((_, i) => mix(ensemble?.sampleProb[i] ?? 0, highRes?.sampleProb[i] ?? 0)),
+    sampleRate: ride.map((_, i) => mix(ensemble?.sampleRate[i] ?? 0, highRes?.rates[i] ?? 0)),
     ensemble,
     ensembleCrossCheck: ensemble
       ? { ...probabilityBounds(ensemble.sampleProb), markov: markovRouteProbability(ensemble.sampleProb, ride, opts.tauSec) }

@@ -76,6 +76,7 @@ describe('evaluateEnsemble', () => {
     expect(res.probability).toBeCloseTo(0.5);
     expect(res.members).toBe(4);
     expect(res.sampleProb).toEqual([0.5, 0.5]);
+    expect(res.sampleRate[0]).toBeCloseTo((0 + 0 + 0.5 + 3) / 4);
   });
 
   it('splits each model weight across its members and drops members without data', () => {
@@ -158,6 +159,8 @@ describe('route probability from per-point chances', () => {
     expect(fc.ensemble!.probability).toBe(1);
     expect(fc.highRes!.probability).toBeCloseTo(0);
     expect(fc.probability).toBeCloseTo(0.75);
+    // Expected rate: 75% of the ensemble's 1 mm/h, 25% of high-res 0 mm/h.
+    expect(fc.sampleRate).toEqual([0.75, 0.75]);
     expect(forecastRoute([], () => 1, ride, T0, opts)!.probability).toBeCloseTo(1);
     expect(forecastRoute([], null, ride, T0, opts)).toBeNull();
   });

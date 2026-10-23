@@ -66,3 +66,38 @@ export function samplePath(path: LatLon[], spacing: number): PathSample[] {
   }
   return out;
 }
+
+/** Distance along the path (metres) of the point on it closest to `p`. Flat-earth maths; fine at city scale. */
+export function distanceAlong(path: LatLon[], cum: number[], p: LatLon): number {
+  const kx = Math.cos((p.lat * Math.PI) / 180);
+  let best = Infinity;
+  let bestD = 0;
+  for (let i = 0; i < path.length - 1; i++) {
+    const ax = path[i].lon * kx;
+    const ay = path[i].lat;
+    const dx = path[i + 1].lon * kx - ax;
+    const dy = path[i + 1].lat - ay;
+    const len2 = dx * dx + dy * dy;
+    const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((p.lon * kx - ax) * dx + (p.lat - ay) * dy) / len2));
+    const ex = ax + t * dx - p.lon * kx;
+    const ey = ay + t * dy - p.lat;
+    const d2 = ex * ex + ey * ey;
+    if (d2 < best) {
+      best = d2;
+      bestD = cum[i] + t * (cum[i + 1] - cum[i]);
+    }
+  }
+  return bestD;
+}
+
+/** Piecewise-linear interpolation of `values` sampled at increasing `at`. */
+export function interpolate(at: number[], values: number[], x: number): number {
+  if (x <= at[0]) return values[0];
+  for (let i = 1; i < at.length; i++) {
+    if (x <= at[i]) {
+      const f = at[i] === at[i - 1] ? 0 : (x - at[i - 1]) / (at[i] - at[i - 1]);
+      return values[i - 1] + f * (values[i] - values[i - 1]);
+    }
+  }
+  return values[values.length - 1];
+}

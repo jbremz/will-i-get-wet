@@ -4,7 +4,7 @@ import './design/bundle.css';
 import './style.css';
 import L from 'leaflet';
 import type { LatLon, PathSample } from './geo';
-import { cumulativeDistances, samplePath, slicePath } from './geo';
+import { cumulativeDistances, distanceAlong, interpolate, samplePath, slicePath } from './geo';
 import type { Place } from './geocode';
 import { reverse, search } from './geocode';
 import type { DepartureOption, ForecastOptions, RideSample, RouteForecast, Scenario, ScenarioResult } from './rainModel';
@@ -86,8 +86,8 @@ function ink(name: string): number[] {
   return rgb;
 }
 
-const mixRgb = (a: number[], b: number[], f: number) => `rgb(${a.map((c, i) => Math.round(c + f * (b[i] - c))).join(',')})`;
-const rgb = (c: number[]) => `rgb(${c.join(',')})`;
+const mix = (a: number[], b: number[], f: number) => a.map((c, i) => c + f * (b[i] - c));
+const rgb = (c: number[]) => `rgb(${c.map(Math.round).join(',')})`;
 
 let palette = readPalette();
 function readPalette() {
@@ -115,8 +115,23 @@ function applyPrintFilters() {
   document.querySelectorAll('#radar-ink .radar-plate').forEach((el) => setPlateInk(el, palette.ink2));
 }
 
-/** Chance of rain as ink coverage: dry prints as bare paper, certain rain as solid ink-1. */
-const probColor = (p: number) => mixRgb(palette.paper, palette.ink1, Math.min(1, Math.max(0, p)));
+/** Expected rain rate (mm/h) at which each ink in `rateInks()` is reached. */
+const RATE_STOPS = [0, 0.1, 0.5, 2, 6];
+/** Bare paper when dry, building up to solid ink-1 for steady rain, then ink-2 (as on the radar) when heavy. */
+const rateInks = () => [
+  palette.paper,
+  mix(palette.paper, palette.ink1, 0.25),
+  mix(palette.paper, palette.ink1, 0.6),
+  palette.ink1,
+  palette.ink2,
+];
+function rateColor(r: number): string {
+  const inks = rateInks();
+  for (let i = 1; i < RATE_STOPS.length; i++) {
+    if (r <= RATE_STOPS[i]) return rgb(mix(inks[i - 1], inks[i], (r - RATE_STOPS[i - 1]) / (RATE_STOPS[i] - RATE_STOPS[i - 1])));
+  }
+  return rgb(inks[inks.length - 1]);
+}
 
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
   document.documentElement.dataset.theme = e.matches ? 'cobalt-tomato-night' : 'cobalt-tomato';
@@ -136,6 +151,11 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 map.createPane('radar').style.zIndex = '350';
 const routeLayer = L.layerGroup().addTo(map);
+// The rain gradient is hundreds of short segments; canvas draws them far faster than SVG.
+const routeCanvas = L.canvas({ padding: 0.5 });
+
+const rateLegend = new L.Control({ position: 'bottomleft' });
+rateLegend.onAdd = () => L.DomUtil.create('div', 'rate-legend');
 
 const pin = (text: string, cls: string) =>
   L.divIcon({ className: `pin ${cls}`, html: `<span>${text}</span>`, iconSize: [28, 28], iconAnchor: [14, 14] });
@@ -451,35 +471,60 @@ function renderMap() {
     bounds.extend(line.getBounds());
   });
 
-  // Selected route: a dark casing, filled per ride sample with ink in proportion to the chance of rain.
+  // Selected route: a dark casing, filled with the expected rain rate as you pass each point, interpolated
+  // smoothly between forecast samples.
   const route = p.routes[state.selected];
   const ev = state.evals[state.selected];
   const cum = cumulativeDistances(route.path);
-  const samples = p.samples[state.selected];
-  L.polyline(route.path.map(ll), { color: rgb(palette.text), weight: 10, opacity: 1, lineCap: 'square' }).addTo(routeLayer);
-  samples.forEach((s, j) => {
-    const d0 = j === 0 ? 0 : (samples[j - 1].distance + s.distance) / 2;
-    const d1 = j === samples.length - 1 ? cum[cum.length - 1] : (s.distance + samples[j + 1].distance) / 2;
-    const prob = ev.fc?.sampleProb[j];
-    const rate = ev.det?.rates[j];
-    const tip = [
-      `<b>${km(s.distance)}</b> · ${mins(ev.ride[j].offsetSec)} in, ${clock(Date.now() + (settings().departMin * 60 + ev.ride[j].offsetSec) * 1000)}`,
-      prob != null ? `${pct(prob)} chance it's raining here` : '',
-      rate != null ? `High-res forecast ${rate.toFixed(1)} mm/h` : '',
-    ]
-      .filter(Boolean)
-      .join('<br>');
-    L.polyline(slicePath(route.path, cum, d0, d1).map(ll), {
-      color: prob != null ? probColor(prob) : probColor(0),
+  const total = cum[cum.length - 1];
+  const at = p.samples[state.selected].map((x) => x.distance);
+  const rates = ev.fc?.sampleRate ?? at.map(() => 0);
+  L.polyline(route.path.map(ll), { color: rgb(palette.text), weight: 10, opacity: 1, lineCap: 'square', renderer: routeCanvas }).addTo(
+    routeLayer,
+  );
+  const step = Math.max(10, total / 600);
+  for (let d = 0; d < total; d += step) {
+    const d1 = Math.min(total, d + step);
+    L.polyline(slicePath(route.path, cum, d, d1).map(ll), {
+      color: rateColor(interpolate(at, rates, (d + d1) / 2)),
       weight: 6,
       opacity: 1,
-      lineCap: 'butt',
-    })
-      .bindTooltip(tip, { sticky: true })
-      .addTo(routeLayer);
-  });
+      lineCap: 'round',
+      interactive: false,
+      renderer: routeCanvas,
+    }).addTo(routeLayer);
+  }
+
+  // One invisible, wide line for hovering: the tooltip reads values at the point under the pointer.
+  const tipAt = (d: number) => {
+    const offsetSec = interpolate(at, ev.ride.map((r) => r.offsetSec), d);
+    const lines = [
+      `<b>${km(d)}</b> · ${mins(offsetSec)} in, ${clock(Date.now() + (settings().departMin * 60 + offsetSec) * 1000)}`,
+      `Expected rain ${interpolate(at, rates, d).toFixed(1)} mm/h`,
+    ];
+    if (ev.fc) lines.push(`${pct(interpolate(at, ev.fc.sampleProb, d))} chance it's raining here`);
+    return lines.join('<br>');
+  };
+  const hover = L.polyline(route.path.map(ll), { weight: 20, opacity: 0 })
+    .bindTooltip(tipAt(0), { sticky: true })
+    .addTo(routeLayer);
+  hover.on('mousemove', (e: L.LeafletMouseEvent) =>
+    hover.setTooltipContent(tipAt(distanceAlong(route.path, cum, { lat: e.latlng.lat, lon: e.latlng.lng }))),
+  );
+
+  renderRateLegend();
   bounds.extend(L.latLngBounds(route.path.map(ll)));
   if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+}
+
+function renderRateLegend() {
+  if (!(rateLegend as any)._map) rateLegend.addTo(map);
+  const inks = rateInks();
+  const gradient = inks.map((c, i) => `${rgb(c)} ${(i / (inks.length - 1)) * 100}%`).join(', ');
+  rateLegend.getContainer()!.innerHTML = `
+    <span class="sbb-label">Expected rain, mm/h</span>
+    <i style="background: linear-gradient(to right, ${gradient})"></i>
+    <span class="ticks">${RATE_STOPS.map((r, i) => `<span>${r}${i === RATE_STOPS.length - 1 ? '+' : ''}</span>`).join('')}</span>`;
 }
 
 function renderHero() {
@@ -594,7 +639,7 @@ function renderTimeline() {
   const n = ev.ride.length;
   const totalMin = ev.ride[n - 1].offsetSec / 60 || 1;
   const x = (min: number) => pad.l + (min / totalMin) * (W - pad.l - pad.r);
-  const rates = ev.det?.rates ?? [];
+  const rates = ev.fc?.sampleRate ?? [];
   const maxRate = Math.max(1, ...rates);
   const yRate = (r: number) => H - pad.b - (r / maxRate) * (H - pad.t - pad.b);
   const yProb = (p: number) => H - pad.b - p * (H - pad.t - pad.b);
@@ -624,7 +669,7 @@ function renderTimeline() {
       <text x="${W - pad.r + 6}" y="${pad.t + 8}">100%</text>
       <text x="${W - pad.r + 6}" y="${H - pad.b}">0%</text>
     </svg>
-    <div class="legend sbb-small"><span><i></i>High-res rain rate, mm/h</span><span><i class="line"></i>Chance it's raining where you are</span></div>`;
+    <div class="legend sbb-small"><span><i></i>Expected rain, mm/h</span><span><i class="line"></i>Chance it's raining where you are</span></div>`;
 }
 
 function renderCrossCheck() {
