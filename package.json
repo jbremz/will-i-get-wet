@@ -1,0 +1,22 @@
+{
+  "name": "will-i-get-wet",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Weather-aware cycle routing: what's the chance you get rained on between A and B?",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.22",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  }
+}

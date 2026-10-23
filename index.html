@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en" data-theme="cobalt-tomato">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Will I get wet?</title>
+    <meta name="description" content="The chance you get rained on between A and B, on a bike or on foot." />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23f8f3de'/><path d='M16 5c-4 6-8 10-8 15a8 8 0 0 0 16 0c0-5-4-9-8-15z' fill='%232a64a8'/></svg>" />
+    <script>
+      // Pick the pairing before first paint: cobalt-tomato, or its night twin.
+      if (matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.dataset.theme = 'cobalt-tomato-night';
+    </script>
+  </head>
+  <body class="sbb-press">
+    <!-- Map tiles are printed in ink-1 on paper: a duotone base plus extra ink-1 plates for water (strong) and parks
+         (light tint). Ink-2 is kept for rain alone, so the radar is the only ink-2 on the map. Colours and blend
+         modes are set from the theme in main.ts. -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <filter id="map-duotone" color-interpolation-filters="sRGB">
+        <feColorMatrix in="SourceGraphic" type="saturate" values="0" />
+        <!-- Darken mid-tones: OSM tiles are mostly pale, so without this the map prints too faint. -->
+        <feComponentTransfer>
+          <feFuncR type="gamma" exponent="1.8" />
+          <feFuncG type="gamma" exponent="1.8" />
+          <feFuncB type="gamma" exponent="1.8" />
+        </feComponentTransfer>
+        <feComponentTransfer id="map-duotone-inks" result="base">
+          <feFuncR type="table" tableValues="0 1" />
+          <feFuncG type="table" tableValues="0 1" />
+          <feFuncB type="table" tableValues="0 1" />
+        </feComponentTransfer>
+        <!-- Plates picked out of the original tile colours by hue; the alpha row is the mask. -->
+        <!-- Parks: green above both red and blue (OSM's orange roads have green > blue, so both are needed). -->
+        <feColorMatrix id="map-parks" in="SourceGraphic" type="matrix" result="parks" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -0.9 1.8 -0.9 0 -0.15" />
+        <!-- Water: blue above red. -->
+        <feColorMatrix id="map-water" in="SourceGraphic" type="matrix" result="water" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -2.2 0 2.2 0 -0.055" />
+        <feBlend class="map-plate" in="parks" in2="base" mode="multiply" result="with-parks" />
+        <feBlend class="map-plate" in="water" in2="with-parks" mode="multiply" />
+      </filter>
+      <!-- Radar in ink-2: any rain as a halftone dot screen, heavy rain (RainViewer's yellow to red, red ≫ blue) solid. -->
+      <filter id="radar-ink" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%">
+        <feColorMatrix class="radar-plate" in="SourceGraphic" type="matrix" result="any" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" />
+        <feImage result="dot" x="0" y="0" width="5" height="5"
+          href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5'%3E%3Ccircle cx='2.5' cy='2.5' r='1.4'/%3E%3C/svg%3E" />
+        <feTile in="dot" result="screen" />
+        <feComposite in="any" in2="screen" operator="in" result="dotted" />
+        <feColorMatrix class="radar-plate" in="SourceGraphic" type="matrix" result="heavy" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  3 0 -3 0 -1.2" />
+        <feMerge>
+          <feMergeNode in="dotted" />
+          <feMergeNode in="heavy" />
+        </feMerge>
+      </filter>
+    </svg>
+
+    <div id="app">
+      <aside id="panel">
+        <header class="sbb-mast">
+          <div>
+            <span class="sbb-mast-name">will I get wet?</span>
+            <span class="sbb-mast-issue">Rain on your route · six forecasts, one answer</span>
+          </div>
+        </header>
+
+        <form id="plan" autocomplete="off">
+          <div class="place">
+            <label for="from" class="sbb-label">From</label>
+            <div class="place-input">
+              <input id="from" placeholder="Search, or click the map" />
+              <button type="button" id="locate" class="sbb-btn sbb-btn-outline" title="Use my location">Here</button>
+            </div>
+            <ul class="suggestions" data-for="from"></ul>
+          </div>
+          <div class="place">
+            <label for="to" class="sbb-label">To</label>
+            <div class="place-input">
+              <input id="to" placeholder="Search, or click the map" />
+              <button type="button" id="swap" class="sbb-btn sbb-btn-outline" title="Swap from and to" aria-label="Swap from and to">⇅</button>
+            </div>
+            <ul class="suggestions" data-for="to"></ul>
+          </div>
+
+          <div class="row">
+            <div class="seg" role="radiogroup" aria-label="Mode">
+              <label><input type="radio" name="mode" value="cycling" checked /><span>Cycle</span></label>
+              <label><input type="radio" name="mode" value="walking" /><span>Walk</span></label>
+            </div>
+            <label class="inline">
+              <input id="speed" type="number" min="2" max="45" step="1" value="16" aria-label="Speed" />
+              <span class="sbb-label">km/h</span>
+            </label>
+          </div>
+
+          <div class="row">
+            <label class="stack">
+              <span class="sbb-label">Leave</span>
+              <select id="depart"></select>
+            </label>
+            <label class="stack">
+              <span class="sbb-label">Counts as rain</span>
+              <select id="threshold">
+                <option value="0.1">Any drizzle, 0.1 mm/h</option>
+                <option value="0.2" selected>Noticeable, 0.2 mm/h</option>
+                <option value="1">Proper rain, 1 mm/h</option>
+                <option value="4">Heavy, 4 mm/h</option>
+              </select>
+            </label>
+          </div>
+
+          <button type="submit" id="go" class="sbb-btn sbb-btn-primary">Check the route</button>
+        </form>
+
+        <div id="status" class="sbb-small" role="status"></div>
+
+        <section id="results" hidden>
+          <div id="hero"></div>
+          <div id="routes"></div>
+          <section>
+            <h2>When to leave</h2>
+            <div id="scan"></div>
+          </section>
+          <section>
+            <h2>Along the ride</h2>
+            <div id="timeline"></div>
+          </section>
+          <section>
+            <h2>How the number is made</h2>
+            <div id="crosscheck"></div>
+          </section>
+        </section>
+
+        <details id="settings">
+          <summary class="sbb-label">Settings</summary>
+          <label class="stack">
+            <span class="sbb-label">Map</span>
+            <select id="map-style">
+              <option value="print">Printed, two inks</option>
+              <option value="colour">Full colour</option>
+            </select>
+          </label>
+          <label class="stack">
+            <span class="sbb-label">Rain correlation time</span>
+            <select id="tau">
+              <option value="10">10 min: scattered showers</option>
+              <option value="20" selected>20 min: typical</option>
+              <option value="45">45 min: fronts, long bands</option>
+            </select>
+          </label>
+          <label class="stack">
+            <span class="sbb-label">openrouteservice key (optional, better cycle routes)</span>
+            <input id="ors-key" placeholder="Free key from openrouteservice.org" />
+          </label>
+        </details>
+
+        <footer class="sbb-small">
+          Weather <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> ·
+          radar <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a> ·
+          routing <a href="https://routing.openstreetmap.de/" target="_blank" rel="noopener">FOSSGIS OSRM</a>,
+          <a href="https://openrouteservice.org/" target="_blank" rel="noopener">ORS</a> ·
+          search <a href="https://photon.komoot.io/" target="_blank" rel="noopener">Photon</a> ·
+          map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>
+        </footer>
+      </aside>
+      <main id="map"></main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

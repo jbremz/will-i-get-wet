@@ -1,0 +1,314 @@
+/* small bean behaviour — compiled from tokens.json. Set data-theme on <html> to pick a pairing. */
+
+:root,
+[data-theme="graphite"] {
+  --paper: #f3efe7;
+  --paper-raised: #f9f6f0;
+  --text: #3d3934;
+  --text-muted: #6b655d;
+  --ink-1: #5a544c;
+  --ink-1-tint: #e6e0d6;
+  --on-ink-1: #f9f6f0;
+  --ink-2: #d9573d;
+  --ink-2-type: #d9573d;
+  --ink-2-tint: #f5dbd0;
+  --on-ink-2: #141210;
+  --rule: var(--ink-1);
+  --focus: var(--text);
+  --danger: #a51a26;
+  --riso-graphite: #5a544c;
+  --riso-blue: #2a64a8;
+  --riso-tomato: #ee5237;
+  --riso-green: #1c7c43;
+  --riso-leaf: #6aae57;
+  --riso-fluoro-pink: #e8318a;
+  --riso-oxblood: #a51a26;
+  --riso-federal: #27348a;
+  --riso-sunflower: #e6bb1a;
+  --stock-cream: #f8f3de;
+  --stock-bone: #f7f4ee;
+  --stock-blush: #fbe8dc;
+  --stock-fog: #f3efe4;
+  --stock-chalk: #f3efe7;
+  --misreg: 3px 3px 0 0 #d9573d;
+  --misreg-sm: 2px 2px 0 0 #d9573d;
+}
+
+[data-theme="graphite-night"] {
+  --paper: #1f1d1b;
+  --paper-raised: #272522;
+  --text: #e4dfd6;
+  --text-muted: #a39d94;
+  --ink-1: #c7c0b5;
+  --ink-1-tint: #383531;
+  --on-ink-1: #1f1d1b;
+  --ink-2: #ef8a6d;
+  --ink-2-type: #ef8a6d;
+  --ink-2-tint: #4a2c24;
+  --on-ink-2: #1f1d1b;
+  --rule: var(--ink-1);
+  --focus: var(--text);
+  --danger: #ff8f80;
+  --riso-graphite: #5a544c;
+  --riso-blue: #2a64a8;
+  --riso-tomato: #ee5237;
+  --riso-green: #1c7c43;
+  --riso-leaf: #6aae57;
+  --riso-fluoro-pink: #e8318a;
+  --riso-oxblood: #a51a26;
+  --riso-federal: #27348a;
+  --riso-sunflower: #e6bb1a;
+  --stock-cream: #f8f3de;
+  --stock-bone: #f7f4ee;
+  --stock-blush: #fbe8dc;
+  --stock-fog: #f3efe4;
+  --stock-chalk: #f3efe7;
+  --misreg: 3px 3px 0 0 #ef8a6d;
+  --misreg-sm: 2px 2px 0 0 #ef8a6d;
+  color-scheme: dark;
+}
+
+[data-theme="cobalt-tomato"] {
+  --paper: #f8f3de;
+  --paper-raised: #fdfaea;
+  --text: #1b3a6b;
+  --text-muted: #4a5f80;
+  --ink-1: #2a64a8;
+  --ink-1-tint: #d3dfe6;
+  --on-ink-1: #fdfaea;
+  --ink-2: #ee5237;
+  --ink-2-type: #ee5237;
+  --ink-2-tint: #f9d3bf;
+  --on-ink-2: #1b1a17;
+  --rule: var(--ink-1);
+  --focus: var(--text);
+  --danger: #a51a26;
+  --riso-graphite: #5a544c;
+  --riso-blue: #2a64a8;
+  --riso-tomato: #ee5237;
+  --riso-green: #1c7c43;
+  --riso-leaf: #6aae57;
+  --riso-fluoro-pink: #e8318a;
+  --riso-oxblood: #a51a26;
+  --riso-federal: #27348a;
+  --riso-sunflower: #e6bb1a;
+  --stock-cream: #f8f3de;
+  --stock-bone: #f7f4ee;
+  --stock-blush: #fbe8dc;
+  --stock-fog: #f3efe4;
+  --stock-chalk: #f3efe7;
+  --misreg: 3px 3px 0 0 #ee5237;
+  --misreg-sm: 2px 2px 0 0 #ee5237;
+}
+
+[data-theme="cobalt-tomato-night"] {
+  --paper: #15181d;
+  --paper-raised: #1d2128;
+  --text: #eee8d3;
+  --text-muted: #a6acb6;
+  --ink-1: #7fb0ec;
+  --ink-1-tint: #22344c;
+  --on-ink-1: #10141a;
+  --ink-2: #ff7a5e;
+  --ink-2-type: #ff7a5e;
+  --ink-2-tint: #4a2620;
+  --on-ink-2: #15181d;
+  --rule: var(--ink-1);
+  --focus: var(--text);
+  --danger: #ff8a7a;
+  --riso-graphite: #5a544c;
+  --riso-blue: #2a64a8;
+  --riso-tomato: #ee5237;
+  --riso-green: #1c7c43;
+  --riso-leaf: #6aae57;
+  --riso-fluoro-pink: #e8318a;
+  --riso-oxblood: #a51a26;
+  --riso-federal: #27348a;
+  --riso-sunflower: #e6bb1a;
+  --stock-cream: #f8f3de;
+  --stock-bone: #f7f4ee;
+  --stock-blush: #fbe8dc;
+  --stock-fog: #f3efe4;
+  --stock-chalk: #f3efe7;
+  --misreg: 3px 3px 0 0 #ff7a5e;
+  --misreg-sm: 2px 2px 0 0 #ff7a5e;
+  color-scheme: dark;
+}
+
+[data-theme="green-pink"] {
+  --paper: #f7f4ee;
+  --paper-raised: #fdfcf8;
+  --text: #12462a;
+  --text-muted: #4c6655;
+  --ink-1: #1c7c43;
+  --ink-1-tint: #d4e6cf;
+  --on-ink-1: #fdfcf8;
+  --ink-2: #e8318a;
+  --ink-2-type: #e8318a;
+  --ink-2-tint: #f8d0df;
+  --on-ink-2: #0f0e0d;
+  --rule: var(--ink-1);
+  --focus: var(--text);
+  --danger: #a51a26;
+  --riso-graphite: #5a544c;
+  --riso-blue: #2a64a8;
+  --riso-tomato: #ee5237;
+  --riso-green: #1c7c43;
+  --riso-leaf: #6aae57;
+  --riso-fluoro-pink: #e8318a;
+  --riso-oxblood: #a51a26;
+  --riso-federal: #27348a;
+  --riso-sunflower: #e6bb1a;
+  --stock-cream: #f8f3de;
+  --stock-bone: #f7f4ee;
+  --stock-blush: #fbe8dc;
+  --stock-fog: #f3efe4;
+  --stock-chalk: #f3efe7;
+  --misreg: 3px 3px 0 0 #e8318a;
+  --misreg-sm: 2px 2px 0 0 #e8318a;
+}
+
+[data-theme="green-pink-night"] {
+  --paper: #131815;
+  --paper-raised: #1b211d;
+  --text: #ecefe6;
+  --text-muted: #a2ada5;
+  --ink-1: #6fcc8d;
+  --ink-1-tint: #1f3a28;
+  --on-ink-1: #101512;
+  --ink-2: #ff6fb0;
+  --ink-2-type: #ff6fb0;
+  --ink-2-tint: #4a2034;
+  --on-ink-2: #131815;
+  --rule: var(--ink-1);
+  --focus: var(--text);
+  --danger: #ff8a7a;
+  --riso-graphite: #5a544c;
+  --riso-blue: #2a64a8;
+  --riso-tomato: #ee5237;
+  --riso-green: #1c7c43;
+  --riso-leaf: #6aae57;
+  --riso-fluoro-pink: #e8318a;
+  --riso-oxblood: #a51a26;
+  --riso-federal: #27348a;
+  --riso-sunflower: #e6bb1a;
+  --stock-cream: #f8f3de;
+  --stock-bone: #f7f4ee;
+  --stock-blush: #fbe8dc;
+  --stock-fog: #f3efe4;
+  --stock-chalk: #f3efe7;
+  --misreg: 3px 3px 0 0 #ff6fb0;
+  --misreg-sm: 2px 2px 0 0 #ff6fb0;
+  color-scheme: dark;
+}
+
+[data-theme="federal-sunflower"] {
+  --paper: #f3efe4;
+  --paper-raised: #faf7ee;
+  --text: #1c2566;
+  --text-muted: #4f5579;
+  --ink-1: #27348a;
+  --ink-1-tint: #d6d6e2;
+  --on-ink-1: #faf7ee;
+  --ink-2: #e6bb1a;
+  --ink-2-type: #7d6000;
+  --ink-2-tint: #f3e3a8;
+  --on-ink-2: #1c2566;
+  --rule: var(--ink-1);
+  --focus: var(--text);
+  --danger: #a51a26;
+  --riso-graphite: #5a544c;
+  --riso-blue: #2a64a8;
+  --riso-tomato: #ee5237;
+  --riso-green: #1c7c43;
+  --riso-leaf: #6aae57;
+  --riso-fluoro-pink: #e8318a;
+  --riso-oxblood: #a51a26;
+  --riso-federal: #27348a;
+  --riso-sunflower: #e6bb1a;
+  --stock-cream: #f8f3de;
+  --stock-bone: #f7f4ee;
+  --stock-blush: #fbe8dc;
+  --stock-fog: #f3efe4;
+  --stock-chalk: #f3efe7;
+  --misreg: 3px 3px 0 0 #e6bb1a;
+  --misreg-sm: 2px 2px 0 0 #e6bb1a;
+}
+
+[data-theme="federal-sunflower-night"] {
+  --paper: #14151f;
+  --paper-raised: #1c1e2b;
+  --text: #f0ecde;
+  --text-muted: #a9abbb;
+  --ink-1: #9fb0ff;
+  --ink-1-tint: #262c52;
+  --on-ink-1: #14151f;
+  --ink-2: #f2c83a;
+  --ink-2-type: #f2c83a;
+  --ink-2-tint: #403615;
+  --on-ink-2: #14151f;
+  --rule: var(--ink-1);
+  --focus: var(--text);
+  --danger: #ff8a7a;
+  --riso-graphite: #5a544c;
+  --riso-blue: #2a64a8;
+  --riso-tomato: #ee5237;
+  --riso-green: #1c7c43;
+  --riso-leaf: #6aae57;
+  --riso-fluoro-pink: #e8318a;
+  --riso-oxblood: #a51a26;
+  --riso-federal: #27348a;
+  --riso-sunflower: #e6bb1a;
+  --stock-cream: #f8f3de;
+  --stock-bone: #f7f4ee;
+  --stock-blush: #fbe8dc;
+  --stock-fog: #f3efe4;
+  --stock-chalk: #f3efe7;
+  --misreg: 3px 3px 0 0 #f2c83a;
+  --misreg-sm: 2px 2px 0 0 #f2c83a;
+  color-scheme: dark;
+}
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+  --radius-0: 0px;
+  --radius-sm: 2px;
+  --radius-pill: 999px;
+  --stroke-hair: 1px;
+  --stroke-rule: 2px;
+  --stroke-heavy: 6px;
+  --font-grotesk: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-condensed: "Archivo Narrow", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --font-serif: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --font-hand: "Nanum Pen Script", "Bradley Hand", "Segoe Print", cursive;
+}
+
+.sbb-poster { font-family: var(--font-condensed); font-size: 96px; line-height: 88px; font-weight: 700; letter-spacing: -0.035em; }
+
+.sbb-poster-sm { font-family: var(--font-condensed); font-size: 56px; line-height: 54px; font-weight: 700; letter-spacing: -0.03em; }
+
+.sbb-display { font-family: var(--font-serif); font-size: 64px; line-height: 64px; font-weight: 400; letter-spacing: -0.02em; font-style: italic; }
+
+.sbb-heading { font-family: var(--font-serif); font-size: 32px; line-height: 36px; font-weight: 500; letter-spacing: -0.01em; }
+
+.sbb-pull { font-family: var(--font-serif); font-size: 24px; line-height: 30px; font-weight: 400; font-style: italic; }
+
+.sbb-title { font-family: var(--font-grotesk); font-size: 20px; line-height: 26px; font-weight: 700; letter-spacing: -0.01em; }
+
+.sbb-body { font-family: var(--font-grotesk); font-size: 16px; line-height: 25px; font-weight: 400; }
+
+.sbb-small { font-family: var(--font-grotesk); font-size: 13px; line-height: 19px; font-weight: 400; }
+
+.sbb-label { font-family: var(--font-grotesk); font-size: 11px; line-height: 14px; font-weight: 600; letter-spacing: 0.1em; }
+
+.sbb-figure { font-family: var(--font-grotesk); font-size: 15px; line-height: 20px; font-weight: 500; }
+
+.sbb-scribble { font-family: var(--font-hand); font-size: 30px; line-height: 30px; font-weight: 400; }
